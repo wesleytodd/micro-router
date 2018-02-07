@@ -1,0 +1,19 @@
+{
+  "name": "@wesleytodd/micro-router",
+  "version": "0.0.0",
+  "description": "Small non-opinionated and dependency free request router",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard && tap test/*.js",
+    "prepublishOnly": "npm t",
+    "postpubilsh": "git push && git push --tags"
+  },
+  "author": "Wes Todd",
+  "license": "ISC",
+  "devDependencies": {
+    "path-to-regexp": "^2.1.0",
+    "r2": "^2.0.0",
+    "standard": "^10.0.3",
+    "tap": "^11.1.0"
+  }
+}
