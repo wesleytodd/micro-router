@@ -1,6 +1,6 @@
 {
   "name": "@wesleytodd/micro-router",
-  "version": "0.0.0",
+  "version": "1.0.0-0",
   "description": "Small non-opinionated and dependency free request router",
   "main": "index.js",
   "scripts": {
