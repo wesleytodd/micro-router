@@ -6,7 +6,7 @@
   "scripts": {
     "test": "standard && tap test/*.js",
     "prepublishOnly": "npm t",
-    "postpubilsh": "git push && git push --tags"
+    "postPubilsh": "git push && git push --tags"
   },
   "author": "Wes Todd",
   "license": "ISC",
