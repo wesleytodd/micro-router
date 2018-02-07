@@ -1,4 +1,6 @@
 'use strict'
+const LRU = require('./lib/lru')
+
 module.exports = MicroRouter
 
 function MicroRouter (matcher) {
@@ -19,6 +21,7 @@ function MicroRouter (matcher) {
 
   router.matcher = matcher
   router.layers = []
+  router.cache = LRU()
 
   return router
 }
@@ -35,37 +38,60 @@ MicroRouter.METHODS = [
 ]
 
 MicroRouter.prototype.handle = function microRouterUse (req, res, final) {
+  let matchedLayers = []
   let pathMatch = false
   let methodMatch = false
   let cur = -1
-  const stack = this.layers
+
+  // Check in cache
+  let key = cacheKey(req)
+  let cached = this.cache.get(key)
+  let stack = cached || this.layers
+
   const next = (err) => {
     cur++
-    if (cur === stack.length) {
+    // Check if fully done
+    if (cur === stack.length && cur === this.layers.length) {
       if (err) {
         res.statusCode = 500
       } else {
         res.statusCode = (pathMatch && !methodMatch) ? 405 : 404
       }
       return final(req, res)
-    }
-
-    if ((err && !stack[cur].handlesErrors) || stack[cur].handlesErrors) {
-      return next(err)
+    } else if (cur === stack.length) {
+      // If we reached the end of the stack, but that is not
+      // the end of the layers, tack on the remaining layers
+      // to ensure that we give them the chance to match this time around
+      stack = stack.concat(this.layers.slice(cur, this.layers.length))
     }
 
     // Match path
-    const params = stack[cur].matchPath(req.url)
+    const params = stack[cur].cachedParams || stack[cur].matchPath(req.url)
     if (params === false) {
       return next()
     }
     pathMatch = true
 
     // Match methods
-    if (stack[cur].matchMethod(req.method)) {
+    if (!stack[cur].cachedMethodMatch && stack[cur].matchMethod(req.method)) {
       return next()
     }
     methodMatch = true
+
+    // Add to matched layers
+    matchedLayers.push({
+      handler: stack[cur].handler,
+      handlesErrors: stack[cur].handlesErrors,
+      cachedParams: params,
+      cachedMethodMatch: true
+    })
+
+    // Add or update the match in the cache with the longer of the stacks
+    this.cache.set(key, (cached && cached.length >= matchedLayers.length) ? cached : matchedLayers)
+
+    if ((err && !stack[cur].handlesErrors) || (!err && stack[cur].handlesErrors)) {
+      return next(err)
+    }
 
     // Call handler
     try {
@@ -120,4 +146,8 @@ function args (path, methods, handler) {
     methods = null
   }
   return {path, methods, handler}
+}
+
+function cacheKey (req) {
+  return req.method + ':' + req.url
 }

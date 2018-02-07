@@ -73,6 +73,19 @@ tap.test('work', function (t) {
     var res5 = await r2.post(addr + '/hodor').response
     t.equal(res5.status, 500)
 
+    // Retry to ensure cache is working in all cases
+    var res6 = await r2.post(addr + '/foo').response
+    var body6 = await res6.json()
+    t.equal(res6.status, 200)
+    t.equal(body6.foo, 'bar')
+    t.equal(body6.method, 'POST')
+
+    var res7 = await r2.post(addr + '/foobar').response
+    t.equal(res7.status, 404)
+
+    var res8 = await r2.post(addr + '/hodor').response
+    t.equal(res8.status, 500)
+
     s.close()
     t.done()
   })
