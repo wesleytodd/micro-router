@@ -109,11 +109,11 @@ MicroRouter.prototype.handle = function microRouterUse (req, res, final) {
 }
 
 MicroRouter.prototype.use = function microRouterUse (path, methods, handler) {
-  use(this, path, methods, handler, false)
+  return use(this, path, methods, handler, false)
 }
 
 MicroRouter.prototype.error = function microRouterError (path, methods, handler) {
-  use(this, path, methods, handler, true)
+  return use(this, path, methods, handler, true)
 }
 
 MicroRouter.METHODS.forEach(function (method) {
@@ -122,18 +122,24 @@ MicroRouter.METHODS.forEach(function (method) {
       handler = path
       path = null
     }
-    use(this, path, method, handler, false)
+    return use(this, path, method, handler, false)
   }
 })
 
 function use (router, _path, _methods, _handler, handlesErrors) {
   let {path, methods, handler} = args(_path, _methods, _handler)
+  if (typeof handler !== 'function') {
+    throw new TypeError('handler must be a function')
+  }
+
   router.layers.push({
     matchPath: router.matcher.path(path),
     matchMethod: router.matcher.method(methods),
     handler: handler,
     handlesErrors: handlesErrors
   })
+
+  return router
 }
 
 function args (path, methods, handler) {
