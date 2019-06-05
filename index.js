@@ -127,7 +127,7 @@ MicroRouter.METHODS.forEach(function (method) {
 })
 
 function use (router, _path, _methods, _handler, handlesErrors) {
-  let {path, methods, handler} = args(_path, _methods, _handler)
+  let { path, methods, handler } = args(_path, _methods, _handler)
   if (typeof handler !== 'function') {
     throw new TypeError('handler must be a function')
   }
@@ -151,7 +151,7 @@ function args (path, methods, handler) {
     handler = methods
     methods = null
   }
-  return {path, methods, handler}
+  return { path, methods, handler }
 }
 
 function cacheKey (req) {
